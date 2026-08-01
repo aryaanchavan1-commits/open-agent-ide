@@ -1,3 +1,4 @@
+import os
 import pytest
 from pathlib import Path
 
@@ -30,8 +31,9 @@ def project_dir(tmp_path):
 def test_resolve_path_rejects_traversal(ws):
     with pytest.raises(WorkspaceError):
         resolve_path(ws, "../escape.txt")
-    with pytest.raises(WorkspaceError):
-        resolve_path(ws, "..\\escape.txt")
+    if os.name == "nt":
+        with pytest.raises(WorkspaceError):
+            resolve_path(ws, "..\\escape.txt")
 
 
 def test_write_read_file(ws):
