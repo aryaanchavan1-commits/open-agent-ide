@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..database import SessionLocal
 from ..models import AppSetting, ProjectSetting
+from .secrets_service import SENSITIVE_KEYS, decrypt_value, encrypt_value
 
 RUNTIME_KEYS = {
     "github_token",
@@ -13,17 +14,24 @@ RUNTIME_KEYS = {
 }
 
 
+def _store(key: str, value: str) -> str:
+    return encrypt_value(value) if key in SENSITIVE_KEYS else value
+
+
 def get_app_setting(db: Session, key: str, default: str = "") -> str:
     row = db.query(AppSetting).filter(AppSetting.key == key).first()
-    return row.value if row else default
+    if not row:
+        return default
+    return decrypt_value(row.value) if key in SENSITIVE_KEYS else row.value
 
 
 def set_app_setting(db: Session, key: str, value: str) -> None:
     row = db.query(AppSetting).filter(AppSetting.key == key).first()
+    stored = _store(key, value)
     if row:
-        row.value = value
+        row.value = stored
     else:
-        db.add(AppSetting(key=key, value=value))
+        db.add(AppSetting(key=key, value=stored))
     db.commit()
 
 
@@ -47,7 +55,9 @@ def get_runtime_settings():
     overrides: dict = {}
     for row in rows:
         if row.value:
-            overrides[row.key] = row.value
+            value = decrypt_value(row.value) if row.key in SENSITIVE_KEYS else row.value
+            if value:
+                overrides[row.key] = value
     if overrides:
         return settings.model_copy(update=overrides)
     return settings

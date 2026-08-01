@@ -10,6 +10,8 @@ from .config import get_settings
 from .database import init_db
 from .tools.files import WorkspaceError
 
+PUBLIC_PATHS = {"/", "/health", "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -64,6 +66,18 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+
+@app.middleware("http")
+async def api_token_guard(request: Request, call_next):
+    token = settings.api_token
+    if token:
+        path = request.url.path
+        if path.startswith(("/api", "/events")) and path not in PUBLIC_PATHS:
+            provided = request.headers.get("x-api-token") or request.query_params.get("token")
+            if provided != token:
+                return JSONResponse(status_code=401, content={"detail": "Missing or invalid X-API-Token header"})
+    return await call_next(request)
 
 
 @app.exception_handler(WorkspaceError)

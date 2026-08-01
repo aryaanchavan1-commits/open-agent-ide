@@ -70,3 +70,5 @@ Thumbs.db
 
 # Build artifacts
 tsconfig.tsbuildinfo
+backend/.secrets_key
+.secrets_key

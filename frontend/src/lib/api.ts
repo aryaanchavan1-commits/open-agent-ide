@@ -1,11 +1,16 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || "";
+
+function authHeaders(): Record<string, string> {
+  return API_TOKEN ? { "X-API-Token": API_TOKEN } : {};
+}
 
 export const api = {
   base: API_URL,
 
   async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const res = await fetch(`${API_URL}${path}`, {
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers || {}) },
       ...options,
     });
     if (!res.ok) {
@@ -31,5 +36,6 @@ export const api = {
 };
 
 export function sseUrl(projectId: number): string {
-  return `${API_URL}/api/projects/${projectId}/events`;
+  const base = `${API_URL}/api/projects/${projectId}/events`;
+  return API_TOKEN ? `${base}?token=${encodeURIComponent(API_TOKEN)}` : base;
 }

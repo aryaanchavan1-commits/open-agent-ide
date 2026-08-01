@@ -87,3 +87,63 @@ class TestJsonExtraction:
 
     def test_invalid(self):
         assert extract_json("no json here") is None
+
+
+import pytest
+
+from app.config import get_settings
+from app.database import SessionLocal
+from app.services.secrets_service import decrypt_value, encrypt_value
+from app.services.settings_service import get_app_setting, set_app_setting
+
+
+def test_secrets_roundtrip():
+    secret = "sk-test-123456"
+    stored = encrypt_value(secret)
+    assert stored.startswith("enc:")
+    assert stored != secret
+    assert decrypt_value(stored) == secret
+
+
+def test_secrets_plaintext_fallback():
+    assert decrypt_value("legacy-plain") == "legacy-plain"
+    assert decrypt_value("") == ""
+
+
+def test_settings_encrypt_sensitive_keys():
+    with SessionLocal() as db:
+        set_app_setting(db, "openai_api_key", "sk-abc")
+        try:
+            from app.models import AppSetting
+
+            row = db.query(AppSetting).filter(AppSetting.key == "openai_api_key").first()
+            assert row is not None
+            assert row.value.startswith("enc:")
+            assert get_app_setting(db, "openai_api_key") == "sk-abc"
+        finally:
+            db.query(AppSetting).filter(AppSetting.key == "openai_api_key").delete()
+            db.commit()
+
+
+def test_settings_plain_key_not_encrypted():
+    with SessionLocal() as db:
+        set_app_setting(db, "auto_push", "true")
+        try:
+            from app.models import AppSetting
+
+            row = db.query(AppSetting).filter(AppSetting.key == "auto_push").first()
+            assert row.value == "true"
+        finally:
+            db.query(AppSetting).filter(AppSetting.key == "auto_push").delete()
+            db.commit()
+
+
+def test_auth_guard():
+    settings = get_settings()
+    if not settings.api_token:
+        pytest.skip("API_TOKEN not configured for this test environment")
+    client = TestClient(__import__("app.main", fromlist=["app"]).app)
+    resp = client.get("/api/models/current")
+    assert resp.status_code == 401
+    resp = client.get("/api/models/current", headers={"X-API-Token": settings.api_token})
+    assert resp.status_code == 200

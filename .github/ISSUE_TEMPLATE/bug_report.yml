@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a bug in Arynox AI
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: What did you run / click? Include the request you sent the AI if relevant.
+      placeholder: |
+        1. Start the app
+        2. Create a project, send the message "..."
+        3. See the error
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model used
+      description: e.g. qwen2.5-coder:1.5b, gpt-4o-mini
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      description: Paste backend console output or the error shown in the UI. Redact API keys.
+      render: shell
+  - type: textarea
+    id: env
+    attributes:
+      label: Backend config
+      description: Contents of backend/.env with all values REMOVED (names only), e.g. AI_PROVIDER=..., OLLAMA_MODEL=...

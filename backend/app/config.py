@@ -2,6 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,11 @@ class Settings(BaseSettings):
     openrouter_model: str = "anthropic/claude-3.5-sonnet"
 
     github_token: str = ""
+
+    # When set, all /api and /events requests require the X-API-Token header.
+    # Generate one with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+    # Leave empty for open localhost access.
+    api_token: str = Field(default="", validation_alias="ARYNOX_API_TOKEN")
 
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = DEFAULT_MODEL_BY_SYSTEM

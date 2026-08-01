@@ -15,7 +15,7 @@ import {
   RefreshCw,
   Server,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, sseUrl } from "@/lib/api";
 import type { IntegrationStatus, ModelInfo, SystemCheck } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +86,7 @@ export default function SettingsPage() {
     setPulling(true);
     setPullLog([]);
     setTestResult(null);
-    const es = new EventSource(`${api.base}/api/projects/0/events`);
+    const es = new EventSource(sseUrl(0));
     const onPull = (e: MessageEvent) => {
       try {
         const d = JSON.parse((e as unknown as { data: string }).data);
