@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=sqlite:///./test.db
+    # Uncomment if using PostgreSQL
+    # depends_on:
+    #   - db
+
+#  db:
+#    image: postgres:15
+#    environment:
+#      POSTGRES_USER: user
+#      POSTGRES_PASSWORD: password
+#      POSTGRES_DB: arynox
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    ports:
+#      - "5432:5432"
+
+#volumes:
+#  postgres_data:

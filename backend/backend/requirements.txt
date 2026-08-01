@@ -1,0 +1,1 @@
+fastapi\nuvicorn[standard]\npydantic\nsqlalchemy\nalembic\npython-dotenv\n

@@ -1,0 +1,69 @@
+# Node_modules
+node_modules
+node_modules/
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.pyo
+*.pyd
+*.pyc
+*.pyo*
+*.pyd
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+pip-wheel-metadata
+share/python-wheels
+*.installer
+pip-wheel-metadata
+.egg
+.installed.cfg
+*.egg
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+./
+.venv/
+env.bak/
+.venv.bak/
+# Next.js
+.next/
+out/
+# Vercel
+.vercel
+# Environment variables
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Databases (local SQLite)
+*.db
+*.db-wal
+*.db-shm
+
+# AI project workspaces (generated code + git repos)
+projects/
+# Logs
+logs
+*.log
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+# OS
+.DS_Store
+Thumbs.db
