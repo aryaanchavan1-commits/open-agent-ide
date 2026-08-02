@@ -72,3 +72,7 @@ Thumbs.db
 tsconfig.tsbuildinfo
 backend/.secrets_key
 .secrets_key
+dist/
+build/
+*.spec
+frontend/out/

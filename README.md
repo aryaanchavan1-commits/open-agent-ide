@@ -70,7 +70,17 @@ Other URLs:
 - Backend API: http://localhost:8000
 - API docs (Swagger): http://localhost:8000/docs
 
-### Windows one-click
+### Windows one-click (EXE)
+
+No Python or Node required. Download **`Arynox.exe`** from the [latest release](https://github.com/aryaanchavan1-commits/open-agent-ide/releases/latest) and double-click it. The launcher:
+
+1. Starts Ollama automatically (if installed) for local models
+2. Runs the embedded backend and IDE (data lives in `%LOCALAPPDATA%\Arynox AI`)
+3. Opens the app at **http://localhost:8000**
+
+Without Ollama, use OpenAI / OpenRouter providers from **Settings → Integrations**.
+
+### Windows one-click (source)
 
 Double-click [`run.bat`](run.bat) — it starts Ollama (if installed), the backend, the frontend, and opens the browser.
 

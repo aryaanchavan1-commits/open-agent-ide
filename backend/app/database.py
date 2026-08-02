@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from .config import BASE_DIR, get_settings
+from .config import DATA_DIR, get_settings
 
 settings = get_settings()
 
@@ -43,6 +43,6 @@ def init_db():
 
     db_path = Path(settings.database_url.replace("sqlite:///", "").split("?")[0])
     if not db_path.is_absolute():
-        db_path = BASE_DIR / db_path
+        db_path = DATA_DIR / db_path
     db_path.parent.mkdir(parents=True, exist_ok=True)
     Base.metadata.create_all(bind=engine)

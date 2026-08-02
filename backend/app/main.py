@@ -1,9 +1,12 @@
 import asyncio
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from .api import api_router
 from .config import get_settings
@@ -11,6 +14,19 @@ from .database import init_db
 from .tools.files import WorkspaceError
 
 PUBLIC_PATHS = {"/", "/health", "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
+
+# Static frontend build (frontend/out or bundled EXE data). When present, the
+# backend serves the IDE itself, making the app a single distributable.
+STATIC_DIR = None
+_env_static = os.environ.get("ARYNOX_STATIC_DIR")
+if _env_static:
+    STATIC_DIR = Path(_env_static)
+else:
+    _repo_out = Path(__file__).resolve().parent.parent.parent / "frontend" / "out"
+    if _repo_out.is_dir():
+        STATIC_DIR = _repo_out
+
+STATIC_INDEX = STATIC_DIR / "index.html" if STATIC_DIR else None
 
 
 @asynccontextmanager
@@ -87,6 +103,8 @@ async def workspace_error_handler(request: Request, exc: WorkspaceError):
 
 @app.get("/")
 def root():
+    if STATIC_INDEX and STATIC_INDEX.exists():
+        return FileResponse(STATIC_INDEX)
     return {
         "app": settings.app_name,
         "version": settings.app_version,
@@ -99,3 +117,22 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+if STATIC_DIR:
+    _next_dir = STATIC_DIR / "_next"
+    if _next_dir.is_dir():
+        app.mount("/_next", StaticFiles(directory=str(_next_dir)), name="next-static")
+
+    @app.get("/{full_path:path}")
+    async def spa_fallback(full_path: str):
+        if full_path.startswith(("api/", "events", "docs", "health", "openapi.json", "redoc")):
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = (STATIC_DIR / full_path).resolve()
+        try:
+            candidate.relative_to(STATIC_DIR.resolve())
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Not found")
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(STATIC_INDEX)

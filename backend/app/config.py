@@ -1,4 +1,6 @@
 from functools import lru_cache
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -7,6 +9,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+IS_FROZEN = getattr(sys, "frozen", False)
+
+# Stable data location: repo/backend in dev, %LOCALAPPDATA%\Arynox AI in the
+# packaged EXE (PyInstaller's temp dir is wiped on exit, so the DB and secrets
+# key must never live there). Overridable via ARYNOX_DATA_DIR.
+if os.environ.get("ARYNOX_DATA_DIR"):
+    DATA_DIR = Path(os.environ["ARYNOX_DATA_DIR"]).resolve()
+elif IS_FROZEN:
+    DATA_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "Arynox AI"
+else:
+    DATA_DIR = BASE_DIR
+
 DEFAULT_MODEL_BY_SYSTEM = "qwen2.5-coder:7b"
 
 
@@ -14,7 +28,7 @@ class Settings(BaseSettings):
     app_name: str = "Arynox AI"
     app_version: str = "0.1.0"
 
-    database_url: str = f"sqlite:///{BASE_DIR / 'arynox.db'}"
+    database_url: str = f"sqlite:///{DATA_DIR / 'arynox.db'}"
 
     ai_provider: str = "ollama"
     ai_model: str = ""
@@ -57,7 +71,8 @@ class Settings(BaseSettings):
     def projects_root_path(self) -> Path:
         p = Path(self.projects_root)
         if not p.is_absolute():
-            p = BASE_DIR / p
+            base = DATA_DIR if IS_FROZEN else BASE_DIR
+            p = base / p
         return p.resolve()
 
     @property

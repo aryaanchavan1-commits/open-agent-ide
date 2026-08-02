@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from ..config import BASE_DIR
+from ..config import DATA_DIR
 
-KEY_FILE = BASE_DIR / ".secrets_key"
+KEY_FILE = DATA_DIR / ".secrets_key"
 
 SENSITIVE_KEYS = {"openai_api_key", "openrouter_api_key", "github_token"}
 
